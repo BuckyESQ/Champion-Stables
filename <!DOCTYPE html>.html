@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>StableFields Horse Importer</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    input, button { padding: .5rem; font-size: 1rem; }
+    #log { white-space: pre-wrap; background: #f4f4f4; padding: 1rem; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Import My ZED Champions Horses</h1>
+  <p>Navigate in your browser to OpenSea, then come back here and hit Import.</p>
+  <button id="import">Import My Horses</button>
+  <div id="log"></div>
+  <script>
+    document.getElementById('import').onclick = async () => {
+      const log = document.getElementById('log');
+      log.textContent = '⏳ Starting import…';
+      try {
+        const res = await fetch('/api/import', { method: 'POST' });
+        const data = await res.json();
+        log.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        log.textContent = '❌ ' + err;
+      }
+    };
+  </script>
+</body>
+</html>
