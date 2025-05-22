@@ -1,30 +1,512 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>StableFields Horse Importer</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zed Champions Tracker — Bloodline Color Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
-    input, button { padding: .5rem; font-size: 1rem; }
-    #log { white-space: pre-wrap; background: #f4f4f4; padding: 1rem; margin-top: 1rem; }
+    :root {
+      --bg-color: #181a20;
+      --section-bg: #232535;
+      --text-color: #fafafa;
+      --accent-color: #e9446a;
+      --input-bg: #232535;
+      --button-bg: #3b60e4;
+      --button-hover-bg: #223181;
+      --border-color: #36395a;
+      --tab-bg: #282a36;
+      --tab-active-bg: #232535;
+      --swatch-border: #bbb;
+    }
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      color: var(--accent-color);
+      letter-spacing: 1px;
+      font-size: 2.2em;
+      margin: 32px 0 16px 0;
+      text-align: center;
+    }
+    .tabbar {
+      display: flex;
+      gap: 2px;
+      background: var(--tab-bg);
+      border-bottom: 2px solid var(--accent-color);
+      margin-bottom: 0;
+      justify-content: center;
+    }
+    .tab-btn {
+      font-family: inherit;
+      font-size: 1em;
+      color: #fff;
+      background: var(--tab-bg);
+      border: none;
+      padding: 14px 32px;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      outline: none;
+      margin-bottom: -2px;
+      transition: background 0.18s;
+    }
+    .tab-btn.active {
+      background: var(--tab-active-bg);
+      color: var(--accent-color);
+      font-weight: bold;
+      border-bottom: 2px solid var(--tab-active-bg);
+    }
+    .tab-content {
+      display: none;
+      background: var(--section-bg);
+      padding: 32px 24px 24px 24px;
+      border-radius: 0 0 16px 16px;
+      max-width: 880px;
+      margin: 0 auto 36px auto;
+      box-shadow: 0 3px 16px #0003;
+      animation: fadein 0.2s;
+    }
+    .tab-content.active { display: block; }
+    @keyframes fadein { from { opacity: 0.7; } to { opacity: 1; } }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(210px,1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    form label {
+      font-weight: bold;
+      color: var(--accent-color);
+      margin-bottom: 2px;
+    }
+    select, input[type="text"], input[type="number"] {
+      background: var(--input-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 1em;
+      padding: 8px 10px;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 4px;
+      margin-bottom: 6px;
+    }
+    select:focus, input:focus {
+      border-color: var(--accent-color);
+      outline: none;
+    }
+    button[type="submit"] {
+      background: var(--button-bg);
+      color: #fff;
+      padding: 12px 32px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1em;
+      font-family: 'Orbitron', sans-serif;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 1px;
+      margin-top: 12px;
+      transition: background 0.15s;
+    }
+    button[type="submit"]:hover { background: var(--button-hover-bg);}
+    .traits-container, .attributes-container {
+      margin-top: 0; margin-bottom: 0;
+    }
+    .traits-container ul, .attributes-container ul {
+      background: #15161e;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin: 0;
+      min-height: 28px;
+      list-style: disc inside;
+    }
+    /* Horses Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #191c24;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 24px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 10px #0002;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      text-align: left;
+      font-size: 1em;
+    }
+    th {
+      background: #222236;
+      color: var(--accent-color);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.93em;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    tbody tr:nth-child(even) { background: #20223a; }
+    .swatch {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1px solid var(--swatch-border);
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @media (max-width: 800px) {
+      .tab-content { padding: 18px 3vw; }
+      .form-grid { grid-template-columns: 1fr; }
+      table, th, td { font-size: 0.97em;}
+    }
   </style>
 </head>
 <body>
-  <h1>Import My ZED Champions Horses</h1>
-  <p>Navigate in your browser to OpenSea, then come back here and hit Import.</p>
-  <button id="import">Import My Horses</button>
-  <div id="log"></div>
+  <h1>Zed Champions Tracker</h1>
+  <div class="tabbar">
+    <button class="tab-btn active" data-tab="racing">Racing</button>
+    <button class="tab-btn" data-tab="breeding">Breeding</button>
+    <button class="tab-btn" data-tab="analysis">Analysis</button>
+    <button class="tab-btn" data-tab="settings">Settings</button>
+  </div>
+
+  <!-- RACING TAB -->
+  <div class="tab-content active" id="tab-racing">
+    <h2>Add Racing Horse</h2>
+    <form id="add-horse-form" autocomplete="off">
+      <div class="form-grid">
+        <div>
+          <label for="horse-name">Name:</label>
+          <input type="text" id="horse-name" required>
+        </div>
+        <div>
+          <label for="horse-bloodline">Bloodline:</label>
+          <select id="horse-bloodline" required>
+            <option value="">--Select--</option>
+            <option value="Nakamoto">Nakamoto</option>
+            <option value="Szabo">Szabo</option>
+            <option value="Finney">Finney</option>
+            <option value="Buterin">Buterin</option>
+          </select>
+        </div>
+        <div>
+          <label for="horse-color">Color:</label>
+          <select id="horse-color" required>
+            <option value="">--Select Color--</option>
+          </select>
+        </div>
+        <div class="traits-container">
+          <label>Traits:</label>
+          <ul id="horse-traits"></ul>
+        </div>
+        <div class="attributes-container">
+          <label>Attribute:</label>
+          <ul id="horse-attributes"></ul>
+        </div>
+        <div>
+          <label for="horse-gender">Gender:</label>
+          <select id="horse-gender" required>
+            <option value="">--Select--</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit">Add Horse</button>
+    </form>
+    <h2 style="margin-top:36px;">Racing Horses</h2>
+    <table id="horses-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Bloodline</th>
+          <th>Gender</th>
+          <th>Color</th>
+          <th>Traits</th>
+          <th>Attribute</th>
+        </tr>
+      </thead>
+      <tbody id="horses-tbody"></tbody>
+    </table>
+  </div>
+  <!-- BREEDING TAB (demo only, not implemented) -->
+  <div class="tab-content" id="tab-breeding">
+    <h2>Breeding (Coming Soon)</h2>
+    <p>Bloodline-aware color and trait inheritance logic will be implemented here. Stay tuned!</p>
+  </div>
+  <!-- ANALYSIS TAB (demo only) -->
+  <div class="tab-content" id="tab-analysis">
+    <h2>Analysis (Coming Soon)</h2>
+    <p>Predictive tools and racing/breeding analysis will appear here.</p>
+  </div>
+  <div class="tab-content" id="tab-settings">
+    <h2>Settings & Data Management</h2>
+    <button id="export-btn" class="button" style="margin-bottom:12px;">Export All Data</button>
+    <input type="file" id="import-input" style="display:none">
+    <button id="import-btn" class="button">Import Data</button>
+    <p style="color:#aaa;margin-top:14px;">Export/Import includes all horses, colors, and traits in this demo.</p>
+  </div>
   <script>
-    document.getElementById('import').onclick = async () => {
-      const log = document.getElementById('log');
-      log.textContent = '⏳ Starting import…';
-      try {
-        const res = await fetch('/api/import', { method: 'POST' });
-        const data = await res.json();
-        log.textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        log.textContent = '❌ ' + err;
+    // --- Bloodline Colors, Traits, Attributes ---
+    const breedColorOptions = {
+      Nakamoto: {
+        "normal": [
+          { label:'sea pink',hex:'#FF91A4' }, { label:'sun glow',hex:'#FFDD44' }, { label:'burnt sienna',hex:'#E97451' },
+          { label:'pomegranate',hex:'#F34723' }, { label:'cinnabar',hex:'#E34234' }, { label:'Alizarin crimson',hex:'#E32636' },
+          { label:'mauvelous',hex:'#EF98AA' }, { label:'fraley',hex:'#EE204D' }, { label:'French rose',hex:'#F64A8A' },
+          { label:'amaranth',hex:'#E52B50' }, { label:'maroon flush',hex:'#C32148' }, { label:'jazzberry jam',hex:'#A50B5E' }
+        ],
+        "rare": [
+          { label:'torch red',hex:'#E25822' }, { label:'razzmatazz',hex:'#E3256B' }
+        ],
+        "super rare": [
+          { label:'guardsman red',hex:'#C41E3A' }, { label:'black',hex:'#000000' }
+        ]
+      },
+      Szabo: {
+        "normal": [
+          { label:'malibu',hex:'#7DC8F7' }, { label:'Jordy blue',hex:'#8AB9F1' }, { label:'dodger blue',hex:'#1E90FF' },
+          { label:'cerulean',hex:'#007BA7' }, { label:'curious blue',hex:'#4592AF' }, { label:'lochmara',hex:'#2E8B57' },
+          { label:'spray',hex:'#85C4CC' }, { label:'turquoise blue',hex:'#40E0D0' }, { label:'scooter',hex:'#3FD0B9' },
+          { label:'Robins egg blue',hex:'#00CCCC' }, { label:'Pacific blue',hex:'#1CA9C9' }, { label:'Bondi blue',hex:'#0095B6' }
+        ],
+        "rare": [
+          { label:'aqua',hex:'#00FFFF' }, { label:'cyan',hex:'#00B7EB' }
+        ],
+        "super rare": [
+          { label:'wild blue yonder',hex:'#A2ADD0' }, { label:'boulder',hex:'#7A7F9A' }
+        ]
+      },
+      Finney: {
+        "normal": [
+          { label:'light wisteria',hex:'#C9A0DC' }, { label:'amethyst',hex:'#9966CC' }, { label:'mamba',hex:'#4E5180' },
+          { label:'séance',hex:'#6F00FF' }, { label:'purple heart',hex:'#69359C' }, { label:'eminence',hex:'#6C3082' },
+          { label:'lavender',hex:'#E6E6FA' }, { label:'lilac bush',hex:'#9874D3' }, { label:'fuchsia blue',hex:'#7D26CD' },
+          { label:'mischka',hex:'#D1C6B3' }, { label:'manatee',hex:'#979AAA' }, { label:'Daisy Bush',hex:'#FFEB6A' }
+        ],
+        "rare": [
+          { label:'heliotrope',hex:'#DF73FF' }, { label:'prelude',hex:'#DF8EAA' }
+        ],
+        "super rare": [
+          { label:'electric violet',hex:'#8F00FF' }, { label:'white',hex:'#FFFFFF' }
+        ]
+      },
+      Buterin: {
+        "normal":[
+          { label:'picasso',hex:'#7A715C' }, { label:'Paris Daisy',hex:'#FFE3A3' }, { label:'gorse',hex:'#FADA5E' },
+          { label:'astra',hex:'#F0F8FF' }, { label:'bright sun',hex:'#FFAA1D' }, { label:'Lightning yellow',hex:'#F8DE7E' },
+          { label:'primrose',hex:'#FDE910' }, { label:'Manz',hex:'#FFCF48' }, { label:'wattle',hex:'#D4AF37' },
+          { label:'pear',hex:'#D1E231' }, { label:'earls',hex:'#C49E3F' }, { label:'ginger',hex:'#B06500' }
+        ],
+        "rare":[
+          { label:'Electric lime',hex:'#CCFF00' }, { label:'shalamar',hex:'#7C1C05' }
+        ],
+        "super rare":[
+          { label:'golf',hex:'#C0C0A8' }, { label:'silver',hex:'#C0C0C0' }
+        ]
       }
+    };
+    const bloodlineTraits = {
+      Nakamoto: ['High start','Nervous','Defensive','Sensitive','Reactive'],
+      Szabo:    ['Calm','Focused','Professional'],
+      Finney:   ['Determined','Stubborn','Hungry','Defensive'],
+      Buterin:  ['Goofy','Playful','Distracted','Restless']
+    };
+    const bloodlineAttributes = {
+      Nakamoto: ['strong start'],
+      Szabo:    ['steady'],
+      Finney:   ['strong finish'],
+      Buterin:  ['unpredictable']
+    };
+
+    // --- App State
+    let horses = [];
+    function saveHorses() { localStorage.setItem('racingHorsesBlood', JSON.stringify(horses)); }
+    function loadHorses() {
+      try { horses = JSON.parse(localStorage.getItem('racingHorsesBlood')) || []; }
+      catch { horses = []; }
+    }
+
+    // --- Populate color select for bloodline
+    function populateColorOptions(bloodline) {
+      const colorSelect = document.getElementById('horse-color');
+      colorSelect.innerHTML = '<option value="">--Select Color--</option>';
+      if (!bloodline || !breedColorOptions[bloodline]) return;
+      ["normal","rare","super rare"].forEach(rarity => {
+        const group = breedColorOptions[bloodline][rarity];
+        if (group && group.length) {
+          const optgroup = document.createElement('optgroup');
+          optgroup.label = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+          group.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c.hex;
+            o.textContent = `${c.label} (${c.hex})`;
+            o.title = c.hex;
+            o.style.backgroundColor = c.hex;
+            o.setAttribute('data-rarity', rarity);
+            optgroup.appendChild(o);
+          });
+          colorSelect.appendChild(optgroup);
+        }
+      });
+      if (colorSelect.options.length > 1) colorSelect.selectedIndex = 1;
+    }
+
+    // --- Display traits and attribute
+    function displayTraits() {
+      const blood = document.getElementById('horse-bloodline').value;
+      const list = document.getElementById('horse-traits');
+      if (!list) return;
+      list.innerHTML = '';
+      (bloodlineTraits[blood] || []).forEach(t => {
+        const li = document.createElement('li');
+        li.textContent = t;
+        list.appendChild(li);
+      });
+    }
+    function displayAttributes() {
+      const blood = document.getElementById('horse-bloodline').value;
+      const list = document.getElementById('horse-attributes');
+      if (!list) return;
+      list.innerHTML = '';
+      (bloodlineAttributes[blood] || []).forEach(a => {
+        const li = document.createElement('li');
+        li.textContent = a;
+        list.appendChild(li);
+      });
+    }
+
+    // --- Table: color label helper
+    function getColorLabel(bloodline, hex) {
+      if (!bloodline || !hex || !breedColorOptions[bloodline]) return hex || '';
+      for (const rarity of ["normal","rare","super rare"]) {
+        const found = breedColorOptions[bloodline][rarity].find(opt => opt.hex.toLowerCase() === (hex || '').toLowerCase());
+        if (found) return `${found.label} (${rarity})`;
+      }
+      return hex || '';
+    }
+
+    // --- On bloodline change, update color select, traits, attribute
+    document.getElementById('horse-bloodline').addEventListener('change', function() {
+      populateColorOptions(this.value);
+      displayTraits();
+      displayAttributes();
+    });
+
+    // --- On page load, initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      populateColorOptions(document.getElementById('horse-bloodline').value);
+      displayTraits();
+      displayAttributes();
+      loadHorses();
+      renderHorsesTable();
+    });
+
+    // --- Add Racing Horse handler
+    document.getElementById('add-horse-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const name = document.getElementById('horse-name').value.trim();
+      const bloodline = document.getElementById('horse-bloodline').value;
+      const color = document.getElementById('horse-color').value;
+      const gender = document.getElementById('horse-gender').value;
+      if (!name || !bloodline || !color || !gender) {
+        alert('Please fill out all required fields.');
+        return;
+      }
+      if (horses.some(h => h.name.toLowerCase() === name.toLowerCase())) {
+        alert(`A horse named "${name}" already exists!`);
+        return;
+      }
+      const traits = bloodlineTraits[bloodline] ? [...bloodlineTraits[bloodline]] : [];
+      const attribute = bloodlineAttributes[bloodline] ? bloodlineAttributes[bloodline][0] : '';
+      horses.push({
+        id: 'horse-' + Date.now() + '-' + Math.random().toString(16).slice(2),
+        name, bloodline, color, gender, traits, attribute
+      });
+      saveHorses();
+      renderHorsesTable();
+      this.reset();
+      populateColorOptions('');
+      document.getElementById('horse-traits').innerHTML = '';
+      document.getElementById('horse-attributes').innerHTML = '';
+    });
+
+    // --- Render horses table
+    function renderHorsesTable() {
+      loadHorses();
+      const tbody = document.getElementById('horses-tbody');
+      tbody.innerHTML = '';
+      horses.forEach(h => {
+        const row = tbody.insertRow();
+        row.insertCell().textContent = h.name;
+        row.insertCell().textContent = h.bloodline;
+        row.insertCell().textContent = h.gender;
+        const colorCell = row.insertCell();
+        colorCell.innerHTML =
+          `<span class="swatch" style="background:${h.color};"></span>${getColorLabel(h.bloodline, h.color)}`;
+        const traitsCell = row.insertCell();
+        traitsCell.innerHTML = `<ul>` + (h.traits||[]).map(t=>`<li>${t}</li>`).join('') + `</ul>`;
+        row.insertCell().textContent = h.attribute || '';
+      });
+    }
+
+    // --- Tabs logic
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // --- Export/Import for Settings
+    document.getElementById('export-btn').onclick = function() {
+      const dataToExport = {
+        horses,
+        breedColorOptions, bloodlineTraits, bloodlineAttributes,
+        exportDate: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(dataToExport,null,2)], {type: 'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'zedchampions-bloodline-data.json';
+      a.click();
+    };
+    document.getElementById('import-btn').onclick = function() {
+      document.getElementById('import-input').click();
+    };
+    document.getElementById('import-input').onchange = function(e) {
+      if (!e.target.files.length) return;
+      const f = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          const imported = JSON.parse(ev.target.result);
+          if (Array.isArray(imported.horses)) {
+            horses = imported.horses;
+            saveHorses();
+            renderHorsesTable();
+            alert('Data imported successfully!');
+          } else {
+            alert('Invalid file format.');
+          }
+        } catch (ex) {
+          alert('Could not parse the file.');
+        }
+      };
+      reader.readAsText(f);
     };
   </script>
 </body>
